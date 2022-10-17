@@ -11,11 +11,16 @@ import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.leanback.widget.VerticalGridView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.fongmi.android.tv.R;
+
+import java.util.Arrays;
+import java.util.List;
+
 public class CustomVerticalGridView extends VerticalGridView {
 
-    private View mTabView;
     private boolean pressUp;
     private boolean pressDown;
+    private List<View> views;
 
     public CustomVerticalGridView(@NonNull Context context) {
         super(context);
@@ -35,18 +40,18 @@ public class CustomVerticalGridView extends VerticalGridView {
         setOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable ViewHolder child, int position, int subposition) {
-                if (mTabView == null) return;
+                if (views == null) return;
                 if (pressUp && position == 0) {
-                    mTabView.setVisibility(View.VISIBLE);
+                    for (View view : views) view.setVisibility(View.VISIBLE);
                 } else if (pressDown && position == 1) {
-                    mTabView.setVisibility(View.GONE);
+                    for (View view : views) view.setVisibility(View.GONE);
                 }
             }
         });
     }
 
-    public void setTabView(View tabView) {
-        this.mTabView = tabView;
+    public void setHeader(View... views) {
+        this.views = Arrays.asList(views);
     }
 
     @Override
@@ -69,9 +74,9 @@ public class CustomVerticalGridView extends VerticalGridView {
     }
 
     public boolean moveToTop() {
-        if (mTabView == null) return false;
-        mTabView.setVisibility(View.VISIBLE);
-        mTabView.requestFocus();
+        if (views == null || getSelectedPosition() == 0 || getAdapter() == null || getAdapter().getItemCount() == 0) return false;
+        for (View view : views) view.setVisibility(View.VISIBLE);
+        for (View view : views) if (view.getId() == R.id.recycler) view.requestFocus();
         scrollToPosition(0);
         return true;
     }

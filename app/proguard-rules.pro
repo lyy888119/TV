@@ -2,7 +2,7 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn sun.misc.**
--keep class com.google.gson.examples.android.model.** { <fields>; }
+-keep class com.google.gson.**{*;}
 -keep class * extends com.google.gson.TypeAdapter
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
@@ -22,9 +22,12 @@
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Path <fields>; }
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.ElementList <fields>; }
 
-# CatVod
--keep class com.github.catvod.crawler.** { *; }
-
 # OkHttp
 -dontwarn okhttp3.**
 -keep class okhttp3.** { *; }
+
+# CatVod
+-keep class com.github.catvod.crawler.** { *; }
+
+# Pyramid
+-keep class com.undcover.freedom.pyramid.** { *; }

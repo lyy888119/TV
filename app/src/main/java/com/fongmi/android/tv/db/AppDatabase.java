@@ -7,13 +7,20 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.History;
+import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.db.dao.ConfigDao;
 import com.fongmi.android.tv.db.dao.HistoryDao;
+import com.fongmi.android.tv.db.dao.KeepDao;
+import com.fongmi.android.tv.db.dao.SiteDao;
 
-@Database(entities = {History.class}, version = AppDatabase.VERSION, exportSchema = false)
+@Database(entities = {Config.class, Site.class, History.class, Keep.class}, version = AppDatabase.VERSION, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 3;
+    public static final int VERSION = 11;
+    public static final String SYMBOL = "@@@";
 
     private static volatile AppDatabase instance;
 
@@ -26,9 +33,11 @@ public abstract class AppDatabase extends RoomDatabase {
         return Room.databaseBuilder(context, AppDatabase.class, "tv").allowMainThreadQueries().fallbackToDestructiveMigration().build();
     }
 
-    public abstract HistoryDao getHistoryDao();
+    public abstract KeepDao getKeepDao();
 
-    public static void clear() {
-        get().getHistoryDao().delete();
-    }
+    public abstract SiteDao getSiteDao();
+
+    public abstract ConfigDao getConfigDao();
+
+    public abstract HistoryDao getHistoryDao();
 }

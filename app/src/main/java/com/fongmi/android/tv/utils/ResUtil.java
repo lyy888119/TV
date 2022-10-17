@@ -2,7 +2,11 @@ package com.fongmi.android.tv.utils;
 
 import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
+import androidx.annotation.AnimRes;
 import androidx.annotation.ArrayRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.StringRes;
@@ -20,8 +24,20 @@ public class ResUtil {
         return getDisplayMetrics().widthPixels;
     }
 
-    public static int dp2px(int dpValue) {
-        return Math.round(dpValue * getDisplayMetrics().density);
+    public static int getScreenHeightPx() {
+        return getDisplayMetrics().heightPixels;
+    }
+
+    public static int getEms() {
+        return Math.min(getScreenWidthPx() / sp2px(24), 35);
+    }
+
+    public static int sp2px(int sp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, getDisplayMetrics());
+    }
+
+    public static int dp2px(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getDisplayMetrics());
     }
 
     public static String getString(@StringRes int resId) {
@@ -38,5 +54,9 @@ public class ResUtil {
 
     public static Drawable getDrawable(@DrawableRes int resId) {
         return ContextCompat.getDrawable(App.get(), resId);
+    }
+
+    public static Animation getAnim(@AnimRes int resId) {
+        return AnimationUtils.loadAnimation(App.get(), resId);
     }
 }

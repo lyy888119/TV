@@ -1,5 +1,8 @@
 package com.fongmi.android.tv.bean;
 
+import android.text.TextUtils;
+
+import com.fongmi.android.tv.R;
 import com.google.gson.annotations.SerializedName;
 
 import org.simpleframework.xml.Attribute;
@@ -17,7 +20,11 @@ public class Class {
     @SerializedName("type_name")
     private String typeName;
 
+    @SerializedName("type_flag")
+    private String typeFlag;
+
     private Boolean filter;
+    private boolean activated;
 
     public String getTypeId() {
         return typeId;
@@ -27,12 +34,33 @@ public class Class {
         return typeName;
     }
 
+    public String getTypeFlag() {
+        return TextUtils.isEmpty(typeFlag) ? "" : typeFlag;
+    }
+
     public void setFilter(Boolean filter) {
         this.filter = filter;
     }
 
     public Boolean getFilter() {
         return filter;
+    }
+
+    public boolean isActivated() {
+        return activated;
+    }
+
+    public void setActivated(boolean activated) {
+        this.activated = activated;
+    }
+
+    public boolean toggleFilter() {
+        setFilter(!getFilter());
+        return getFilter();
+    }
+
+    public int getIcon() {
+        return getFilter() == null ? 0 : getFilter() ? R.drawable.ic_filter_off_small : R.drawable.ic_filter_on_small;
     }
 
     @Override

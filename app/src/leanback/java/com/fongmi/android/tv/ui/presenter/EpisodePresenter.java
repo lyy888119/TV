@@ -8,17 +8,23 @@ import androidx.leanback.widget.Presenter;
 
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterEpisodeBinding;
+import com.fongmi.android.tv.utils.ResUtil;
 
 public class EpisodePresenter extends Presenter {
 
-    private OnClickListener mListener;
+    private final OnClickListener mListener;
+    private int nextFocus;
+
+    public EpisodePresenter(OnClickListener listener) {
+        this.mListener = listener;
+    }
 
     public interface OnClickListener {
         void onItemClick(Vod.Flag.Episode item);
     }
 
-    public void setOnClickListener(OnClickListener listener) {
-        this.mListener = listener;
+    public void setNextFocusDown(int nextFocus) {
+        this.nextFocus = nextFocus;
     }
 
     @Override
@@ -31,6 +37,8 @@ public class EpisodePresenter extends Presenter {
         Vod.Flag.Episode item = (Vod.Flag.Episode) object;
         ViewHolder holder = (ViewHolder) viewHolder;
         holder.binding.text.setText(item.getName());
+        holder.binding.text.setMaxEms(ResUtil.getEms());
+        holder.binding.text.setNextFocusDownId(nextFocus);
         holder.binding.text.setActivated(item.isActivated());
         setOnClickListener(holder, view -> mListener.onItemClick(item));
     }

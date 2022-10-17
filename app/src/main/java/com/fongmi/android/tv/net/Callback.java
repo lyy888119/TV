@@ -10,7 +10,7 @@ import okhttp3.Response;
 
 public abstract class Callback implements okhttp3.Callback {
 
-    public void success() {
+    public void success(String json) {
     }
 
     public void error(@StringRes int resId) {
@@ -21,6 +21,6 @@ public abstract class Callback implements okhttp3.Callback {
     }
 
     @Override
-    public void onResponse(@NonNull Call call, @NonNull Response response) {
+    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
     }
 }

@@ -3,11 +3,14 @@ package com.fongmi.android.tv.ui.activity;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.os.Bundle;
 import android.view.View;
 
+import androidx.core.splashscreen.SplashScreen;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.api.ApiConfig;
+import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.databinding.ActivitySplashBinding;
 import com.fongmi.android.tv.net.Callback;
 import com.fongmi.android.tv.utils.Notify;
@@ -23,16 +26,22 @@ public class SplashActivity extends BaseActivity {
     }
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen.installSplashScreen(this);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
     protected void initView() {
-        mBinding.title.animate().alpha(1).setDuration(2000).setListener(onAnimationEnd()).start();
+        mBinding.title.animate().alpha(1).setDuration(1000).setListener(onAnimationEnd()).start();
     }
 
     private AnimatorListenerAdapter onAnimationEnd() {
         return new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                mBinding.title.setVisibility(View.GONE);
                 mBinding.info.animate().alpha(1).setDuration(500).start();
+                mBinding.title.setVisibility(View.GONE);
                 loadConfig();
             }
         };
@@ -41,8 +50,9 @@ public class SplashActivity extends BaseActivity {
     private void loadConfig() {
         ApiConfig.get().init().loadConfig(new Callback() {
             @Override
-            public void success() {
+            public void success(String json) {
                 HomeActivity.start(getActivity());
+                Config.save(json);
             }
 
             @Override

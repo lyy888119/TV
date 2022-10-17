@@ -1,8 +1,15 @@
 package com.fongmi.android.tv.bean;
 
 import androidx.annotation.NonNull;
+import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.ApiConfig;
+import com.fongmi.android.tv.db.AppDatabase;
+
+import java.util.List;
 
 @Entity
 public class History {
@@ -15,10 +22,14 @@ public class History {
     private String vodFlag;
     private String vodRemarks;
     private String episodeUrl;
+    private boolean revSort;
+    private boolean revPlay;
     private long createTime;
     private long opening;
     private long ending;
+    private long position;
     private long duration;
+    private int cid;
 
     public History() {
     }
@@ -72,6 +83,22 @@ public class History {
         this.episodeUrl = episodeUrl;
     }
 
+    public boolean isRevSort() {
+        return revSort;
+    }
+
+    public void setRevSort(boolean revSort) {
+        this.revSort = revSort;
+    }
+
+    public boolean isRevPlay() {
+        return revPlay;
+    }
+
+    public void setRevPlay(boolean revPlay) {
+        this.revPlay = revPlay;
+    }
+
     public long getCreateTime() {
         return createTime;
     }
@@ -96,6 +123,14 @@ public class History {
         this.ending = ending;
     }
 
+    public long getPosition() {
+        return position;
+    }
+
+    public void setPosition(long position) {
+        this.position = position;
+    }
+
     public long getDuration() {
         return duration;
     }
@@ -104,12 +139,20 @@ public class History {
         this.duration = duration;
     }
 
+    public int getCid() {
+        return cid;
+    }
+
+    public void setCid(int cid) {
+        this.cid = cid;
+    }
+
     public String getSiteKey() {
-        return getKey().substring(0, getKey().lastIndexOf("_"));
+        return getKey().substring(0, getKey().lastIndexOf(AppDatabase.SYMBOL));
     }
 
     public String getVodId() {
-        return getKey().substring(getKey().lastIndexOf("_") + 1);
+        return getKey().substring(getKey().lastIndexOf(AppDatabase.SYMBOL) + AppDatabase.SYMBOL.length());
     }
 
     public Vod.Flag getFlag() {
@@ -117,6 +160,71 @@ public class History {
     }
 
     public Vod.Flag.Episode getEpisode() {
-        return new Vod.Flag.Episode(getEpisodeUrl());
+        return new Vod.Flag.Episode(getVodRemarks(), getEpisodeUrl());
+    }
+
+    public int getRevPlayText() {
+        return isRevPlay() ? R.string.play_backward : R.string.play_forward;
+    }
+
+    public int getRevPlayHint() {
+        return isRevPlay() ? R.string.play_backward_hint : R.string.play_forward_hint;
+    }
+
+    public static List<History> get() {
+        return AppDatabase.get().getHistoryDao().find(ApiConfig.getCid());
+    }
+
+    public static History find(String key) {
+        return AppDatabase.get().getHistoryDao().find(ApiConfig.getCid(), key);
+    }
+
+    public static void delete(int cid) {
+        AppDatabase.get().getHistoryDao().delete(cid);
+    }
+
+    private void checkOpEd(History item) {
+        if (getOpening() == 0) setOpening(item.getOpening());
+        if (getEnding() == 0) setEnding(item.getEnding());
+    }
+
+    private void checkMerge(List<History> items) {
+        for (History item : items) {
+            if (getKey().equals(item.getKey()) || Math.abs(item.getDuration() - getDuration()) > 10 * 60 * 1000) continue;
+            checkOpEd(item);
+            item.delete();
+        }
+    }
+
+    public History update(long position, long duration) {
+        setPosition(position);
+        setDuration(duration);
+        checkMerge(AppDatabase.get().getHistoryDao().findByName(ApiConfig.getCid(), getVodName()));
+        AppDatabase.get().getHistoryDao().insertOrUpdate(this);
+        return this;
+    }
+
+    public History delete() {
+        AppDatabase.get().getHistoryDao().delete(ApiConfig.getCid(), getKey());
+        return this;
+    }
+
+    public void findEpisode(ArrayObjectAdapter adapter) {
+        Vod.Flag flag = (Vod.Flag) adapter.get(0);
+        setVodFlag(flag.getFlag());
+        setVodRemarks(flag.getEpisodes().get(0).getName());
+        for (History item : AppDatabase.get().getHistoryDao().findByName(ApiConfig.getCid(), getVodName())) {
+            if (getPosition() > 0) break;
+            for (int i = 0; i < adapter.size(); i++) {
+                flag = (Vod.Flag) adapter.get(i);
+                Vod.Flag.Episode episode = flag.find(item.getVodRemarks());
+                if (episode == null) continue;
+                setVodFlag(flag.getFlag());
+                setPosition(item.getPosition());
+                setVodRemarks(episode.getName());
+                checkOpEd(item);
+                break;
+            }
+        }
     }
 }

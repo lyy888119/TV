@@ -1,116 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:keepScreenOn="true">
+    android:animateLayoutChanges="true"
+    android:keepScreenOn="true"
+    android:orientation="horizontal"
+    android:paddingStart="24dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="24dp">
 
-    <com.fongmi.android.tv.ui.custom.ProgressLayout
-        android:id="@+id/progressLayout"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:id="@+id/historyLayout"
+        android:layout_width="128dp"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:layout_marginEnd="36dp"
+        android:orientation="vertical">
 
-        <androidx.leanback.widget.VerticalGridView
-            android:id="@+id/recycler"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/search_history"
+            android:textColor="@color/white"
+            android:textSize="24sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/historyRecycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:padding="24dp"
-            app:focusOutEnd="true"
-            app:focusOutFront="true" />
+            android:paddingBottom="24dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:itemCount="10"
+            tools:listitem="@layout/adapter_search_history" />
 
-    </com.fongmi.android.tv.ui.custom.ProgressLayout>
+    </LinearLayout>
 
     <RelativeLayout
-        android:id="@+id/layout"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:gravity="center">
+        android:layout_marginEnd="36dp"
+        android:orientation="vertical">
 
-        <LinearLayout
-            android:id="@+id/search_bar"
-            android:layout_width="match_parent"
+        <com.fongmi.android.tv.ui.custom.CustomMic
+            android:id="@+id/mic"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="12dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusLeft="@id/history"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_mic" />
+
+        <com.fongmi.android.tv.ui.custom.CustomEditText
+            android:id="@+id/keyword"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignStart="@+id/keyboard"
             android:layout_alignEnd="@+id/keyboard"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="24dp"
-            android:orientation="horizontal">
+            android:layout_marginBottom="16dp"
+            android:layout_toEndOf="@+id/mic"
+            android:background="@null"
+            android:hint="@string/search_keyword"
+            android:imeOptions="actionDone"
+            android:inputType="textCapCharacters|textAutoCorrect|textAutoComplete"
+            android:letterSpacing="0.02"
+            android:maxLength="20"
+            android:nextFocusRight="@id/word"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textCursorDrawable="@drawable/shape_cursor"
+            android:textSize="24sp" />
 
-            <com.fongmi.android.tv.ui.custom.CustomEditText
-                android:id="@+id/keyword"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:hint="@string/search_hint"
-                android:imeOptions="actionDone"
-                android:inputType="textCapCharacters|textAutoCorrect|textAutoComplete"
-                android:maxLength="30"
-                android:singleLine="true"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/search"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:text="@string/home_search"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/clear"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:text="@string/search_clear"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/remote"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:text="@string/search_remote"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-        </LinearLayout>
-
-        <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
-            android:id="@+id/recommend_word_grid"
-            android:layout_width="556dp"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/search_bar"
-            android:layout_marginTop="4mm"
-            android:layout_marginBottom="4mm"
-            android:visibility="gone" />
-
-        <androidx.leanback.widget.VerticalGridView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/keyboard"
-            android:layout_width="556dp"
-            android:layout_height="244dp"
-            android:layout_below="@id/recommend_word_grid"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:padding="24dp"
-            app:focusOutEnd="true"
-            app:focusOutFront="true" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/keyword"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="6"
+            tools:itemCount="36"
+            tools:listitem="@layout/adapter_keyboard_text" />
 
     </RelativeLayout>
-</RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="24dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/search_hot"
+            android:textColor="@color/white"
+            android:textSize="24sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/wordRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:paddingBottom="24dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:itemCount="10"
+            tools:listitem="@layout/adapter_search_word" />
+
+    </LinearLayout>
+</LinearLayout>
+

@@ -7,8 +7,6 @@ import android.text.format.Formatter;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.event.ServerEvent;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -34,6 +32,11 @@ public class Server implements Nano.Listener {
 
     public String getAddress(boolean local) {
         return "http://" + (local ? "127.0.0.1" : getIP()) + ":" + port;
+    }
+
+    public static String proxy(String url) {
+        if (url.startsWith("proxy://")) return url.replace("proxy://", get().getAddress(true) + "/proxy?");
+        return url;
     }
 
     public void start() {
@@ -85,16 +88,16 @@ public class Server implements Nano.Listener {
 
     @Override
     public void onSearch(String text) {
-        EventBus.getDefault().post(ServerEvent.search(text));
+        if (text.length() > 0) ServerEvent.search(text);
     }
 
     @Override
     public void onPush(String url) {
-        EventBus.getDefault().post(ServerEvent.push(url));
+        if (url.length() > 0) ServerEvent.push(url);
     }
 
     @Override
     public void onApi(String url) {
-        EventBus.getDefault().post(ServerEvent.api(url));
+        if (url.length() > 0) ServerEvent.api(url);
     }
 }

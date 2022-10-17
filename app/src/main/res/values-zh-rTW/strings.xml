@@ -7,27 +7,14 @@
     <!-- Splash -->
     <string name="splash_info">正在載入配置</string>
 
-    <!-- Home -->
-    <string name="home_vod">點播</string>
-    <string name="home_live">直播</string>
-    <string name="home_search">搜尋</string>
-    <string name="home_push">推送</string>
-    <string name="home_setting">設定</string>
-    <string name="home_history">最近觀看</string>
-    <string name="home_recommend">更新推薦</string>
-
     <!-- Vod -->
     <string name="vod_last">上次看到<xliff:g name="name">%s</xliff:g></string>
 
-    <!-- Search -->
-    <string name="search_hint">輸入關鍵字…</string>
-    <string name="search_clear">清空</string>
-    <string name="search_remote">遠程</string>
-
     <!-- Push -->
-    <string name="push_info">手機或電腦連接同一個區域網路，掃描 QR Code 或瀏覽器輸入網址\n<xliff:g name="name">%s</xliff:g></string>
+    <string name="push_clip">推送剪貼簿內容</string>
 
     <!-- Detail -->
+    <string name="detail_title"><xliff:g name="name">%s</xliff:g>：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_site">站源：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_year">年份：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_area">地區：<xliff:g name="name">%s</xliff:g></string>
@@ -35,50 +22,89 @@
     <string name="detail_director">導演：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_actor">演員：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_content">簡介：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_desc">簡介</string>
+    <string name="detail_keep">收藏</string>
+    <string name="detail_keep_add">已加入收藏</string>
+    <string name="detail_keep_del">已取消收藏</string>
 
     <!-- Play -->
     <string name="play">播放</string>
     <string name="play_next">下一集</string>
     <string name="play_prev">上一集</string>
     <string name="play_ready">準備播放：<xliff:g name="name">%s</xliff:g></string>
-    <string name="play_replay">重播本集</string>
+    <string name="play_replay">重播</string>
     <string name="play_reset">重置</string>
-    <string name="play_oped">片頭片尾</string>
+    <string name="play_tracks">軌道</string>
+    <string name="play_op">片頭</string>
+    <string name="play_ed">片尾</string>
+    <string name="play_reverse">倒序</string>
+    <string name="play_forward">→</string>
+    <string name="play_backward">←</string>
+    <string name="play_forward_hint">已切換正序播放</string>
+    <string name="play_backward_hint">已切換倒序播放</string>
+    <string name="play_switching">正在切換線路至「<xliff:g name="name">%s</xliff:g>」</string>
+
+    <!-- Parse -->
+    <string name="parse">解析</string>
+    <string name="parse_from">解析來自：<xliff:g name="name">%s</xliff:g></string>
 
     <!-- Setting -->
     <string name="setting_site">首頁</string>
     <string name="setting_url">配置</string>
-    <string name="setting_history">歷史</string>
-    <string name="setting_thumbnail">縮圖</string>
+    <string name="setting_render">渲染方式</string>
+    <string name="setting_scale">縮放比例</string>
+    <string name="setting_quality">圖片品質</string>
+    <string name="setting_size">圖片尺寸</string>
+    <string name="setting_version">版本</string>
 
     <!-- Dialog -->
     <string name="dialog_positive">確定</string>
     <string name="dialog_negative">取消</string>
-    <string name="dialog_config_url_hint">請輸入配置接口</string>
+    <string name="dialog_config_hint">請輸入配置接口</string>
 
     <!-- Error -->
     <string name="error_config_get">配置取得失敗</string>
     <string name="error_config_parse">配置解析失敗</string>
     <string name="error_play_next">已經是最後一集了！</string>
     <string name="error_play_prev">已經是第一集了！</string>
-    <string name="error_play_parse">無法解析網址</string>
-    <string name="error_play">不支援的影片格式</string>
+    <string name="error_play_parse">播放網址解析失敗</string>
+    <string name="error_play_load">播放資料載入失敗</string>
+    <string name="error_play_format">不支援的影片格式</string>
+    <string name="error_episode">暫無播放資料</string>
+    <string name="error_empty">找不到資料</string>
+
+    <!-- Update -->
+    <string name="update_version">發現新版本 <xliff:g name="name">%s</xliff:g></string>
+    <string name="update_confirm">更新</string>
+
+    <!-- Crash -->
+    <string name="crash_info">發生意外錯誤\n抱歉給您帶來不便</string>
+    <string name="crash_restart">重新啟動</string>
+    <string name="crash_details">錯誤訊息</string>
+    <string name="crash_details_title">錯誤訊息</string>
+    <string name="crash_details_close">關閉</string>
 
     <!-- UNIT -->
-    <string name="second"><xliff:g name="name">%s</xliff:g> 秒</string>
+    <string name="all">全部</string>
 
-    <string-array name="select_thumbnail">
-        <item>低品質</item>
-        <item>中品質</item>
-        <item>高品質</item>
+    <string-array name="select_quality">
+        <item>低</item>
+        <item>中</item>
+        <item>高</item>
+    </string-array>
+
+    <string-array name="select_size">
+        <item>小</item>
+        <item>中</item>
+        <item>大</item>
     </string-array>
 
     <string-array name="select_scale">
         <item>預設</item>
-        <item>寬度</item>
-        <item>高度</item>
+        <item>16:9</item>
+        <item>4:3</item>
         <item>填充</item>
-        <item>縮放</item>
+        <item>裁剪</item>
     </string-array>
 
 </resources>

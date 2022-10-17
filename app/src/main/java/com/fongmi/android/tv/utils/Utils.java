@@ -1,35 +1,49 @@
 package com.fongmi.android.tv.utils;
 
 import android.app.Activity;
-import android.app.PictureInPictureParams;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.provider.Settings;
-import android.util.Rational;
+import android.content.Context;
+import android.net.Uri;
+import android.os.IBinder;
+import android.text.TextUtils;
+import android.util.Base64;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import com.fongmi.android.tv.App;
-import com.google.android.exoplayer2.util.Util;
 
-import java.util.regex.Pattern;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Utils {
 
-    private static final Pattern SNIFFER = Pattern.compile("http((?!http).){26,}?\\.(m3u8|mp4|flv|avi|mkv|rm|wmv|mpg)\\?.*|http((?!http).){26,}\\.(m3u8|mp4|flv|avi|mkv|rm|wmv|mpg)|http((?!http).){26,}?/m3u8\\?pt=m3u8.*|http((?!http).)*?default\\.ixigua\\.com/.*|http((?!http).)*?cdn-tos[^\\?]*|http((?!http).)*?/obj/tos[^\\?]*|http.*?/player/m3u8play\\.php\\?url=.*|http.*?/player/.*?[pP]lay\\.php\\?url=.*|http.*?/playlist/m3u8/\\?vid=.*|http.*?\\.php\\?type=m3u8&.*|http.*?/download.aspx\\?.*|http.*?/api/up_api.php\\?.*|https.*?\\.66yk\\.cn.*|http((?!http).)*?netease\\.com/file/.*");
-
-    public static boolean hasPIP() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && App.get().getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
+    public static boolean isEnterKey(KeyEvent event) {
+        return event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_SPACE || event.getKeyCode() == KeyEvent.KEYCODE_NUMPAD_ENTER;
     }
 
-    public static void enterPIP(Activity activity) {
-        try {
-            if (!hasPIP() || activity.isInPictureInPictureMode()) return;
-            PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
-            builder.setAspectRatio(new Rational(16, 9)).build();
-            activity.enterPictureInPictureMode(builder.build());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static boolean isUpKey(KeyEvent event) {
+        return event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_UP || event.getKeyCode() == KeyEvent.KEYCODE_PAGE_UP || event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PREVIOUS;
+    }
+
+    public static boolean isDownKey(KeyEvent event) {
+        return event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_PAGE_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_NEXT;
+    }
+
+    public static boolean isLeftKey(KeyEvent event) {
+        return event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT;
+    }
+
+    public static boolean isRightKey(KeyEvent event) {
+        return event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
+    }
+
+    public static boolean isBackKey(KeyEvent event) {
+        return event.getKeyCode() == KeyEvent.KEYCODE_BACK;
     }
 
     public static void hideSystemUI(Activity activity) {
@@ -37,17 +51,80 @@ public class Utils {
         activity.getWindow().getDecorView().setSystemUiVisibility(flags);
     }
 
-    public static String getUUID() {
-        return Settings.Secure.getString(App.get().getContentResolver(), Settings.Secure.ANDROID_ID);
-    }
-
-    public static String getUserAgent() {
-        return Util.getUserAgent(App.get(), App.get().getPackageName().concat(".").concat(getUUID()));
-    }
-
     public static boolean isVideoFormat(String url) {
-        if (url.contains("=http") || url.contains("=https") || url.contains("=https%3a%2f") || url.contains("=http%3a%2f")) return false;
-        if (SNIFFER.matcher(url).find()) return !url.contains("cdn-tos") || (!url.contains(".js") && !url.contains(".css"));
+        return isVideoFormat(url, new HashMap<>());
+    }
+
+    public static boolean isVideoFormat(String url, Map<String, String> headers) {
+        if (headers.containsKey("Accept") && headers.get("Accept").contains("image")) return false;
+        if (url.contains(".js") || url.contains(".css")) return false;
+        return Sniffer.RULE.matcher(url).find();
+    }
+
+    public static boolean isVip(String url) {
+        List<String> hosts = Arrays.asList("iqiyi.com", "v.qq.com", "youku.com", "le.com", "tudou.com", "mgtv.com", "sohu.com", "acfun.cn", "bilibili.com", "baofeng.com", "pptv.com");
+        for (String host : hosts) if (url.contains(host)) return true;
         return false;
+    }
+
+    public static String checkClan(String text) {
+        if (text.contains("/localhost/")) text = text.replace("/localhost/", "/");
+        if (text.startsWith("clan")) text = text.replace("clan", "file");
+        return text;
+    }
+
+    public static String convert(String text) {
+        if (TextUtils.isEmpty(text)) return "";
+        if (text.startsWith("clan")) return checkClan(text);
+        if (text.startsWith(".")) text = text.substring(1);
+        if (text.startsWith("/")) text = text.substring(1);
+        Uri uri = Uri.parse(Prefers.getUrl());
+        if (uri.getLastPathSegment() == null) return uri.getScheme() + "://" + text;
+        return uri.toString().replace(uri.getLastPathSegment(), text);
+    }
+
+    public static String getMD5(String src) {
+        try {
+            if (TextUtils.isEmpty(src)) return "";
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            byte[] bytes = digest.digest(src.getBytes());
+            BigInteger no = new BigInteger(1, bytes);
+            StringBuilder sb = new StringBuilder(no.toString(16));
+            while (sb.length() < 32) sb.insert(0, "0");
+            return sb.toString().toLowerCase();
+        } catch (NoSuchAlgorithmException e) {
+            return "";
+        }
+    }
+
+    public static String getBase64(String ext) {
+        return Base64.encodeToString(ext.getBytes(), Base64.DEFAULT | Base64.NO_WRAP);
+    }
+
+    public static String substring(String text) {
+        return substring(text, 1);
+    }
+
+    public static String substring(String text, int num) {
+        if (text != null && text.length() > num) return text.substring(0, text.length() - num);
+        return text;
+    }
+
+    public static int getDigit(String text) {
+        try {
+            if (text.startsWith("上") || text.startsWith("下")) return -1;
+            if (text.contains(".")) text = text.substring(0, text.lastIndexOf("."));
+            return Integer.parseInt(text.replaceAll("\\D+", ""));
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    public static void hideKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) App.get().getSystemService(Context.INPUT_METHOD_SERVICE);
+        IBinder windowToken = view.getWindowToken();
+        if (imm != null && windowToken != null) {
+            imm.hideSoftInputFromWindow(windowToken, 0);
+        }
     }
 }
