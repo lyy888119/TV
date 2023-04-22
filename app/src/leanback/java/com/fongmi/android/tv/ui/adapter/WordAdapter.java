@@ -24,23 +24,7 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
 
     public interface OnClickListener {
 
-        void onItemClick(String item);
-    }
-
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        private final AdapterSearchWordBinding binding;
-
-        public ViewHolder(@NonNull AdapterSearchWordBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View view) {
-            mListener.onItemClick(mItems.get(getLayoutPosition()));
-        }
+        void onItemClick(String text);
     }
 
     public void addAll(List<String> items) {
@@ -63,5 +47,21 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.binding.word.setText(mItems.get(position));
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        private final AdapterSearchWordBinding binding;
+
+        public ViewHolder(@NonNull AdapterSearchWordBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            mListener.onItemClick(mItems.get(getLayoutPosition()));
+        }
     }
 }

@@ -2,12 +2,15 @@ package com.fongmi.android.tv.bean;
 
 import android.text.TextUtils;
 
-import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.Text;
+
+import java.util.Collections;
+import java.util.List;
 
 @Root(strict = false)
 public class Class {
@@ -23,19 +26,42 @@ public class Class {
     @SerializedName("type_flag")
     private String typeFlag;
 
+    @SerializedName("filters")
+    private List<Filter> filters;
+
     private Boolean filter;
     private boolean activated;
 
     public String getTypeId() {
-        return typeId;
+        return TextUtils.isEmpty(typeId) ? "" : typeId;
+    }
+
+    public void setTypeId(String typeId) {
+        this.typeId = typeId;
     }
 
     public String getTypeName() {
-        return typeName;
+        return TextUtils.isEmpty(typeName) ? "" : typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
     }
 
     public String getTypeFlag() {
         return TextUtils.isEmpty(typeFlag) ? "" : typeFlag;
+    }
+
+    public void setTypeFlag(String typeFlag) {
+        this.typeFlag = typeFlag;
+    }
+
+    public List<Filter> getFilters() {
+        return filters == null ? Collections.emptyList() : filters;
+    }
+
+    public void setFilters(List<Filter> filters) {
+        this.filters = filters;
     }
 
     public void setFilter(Boolean filter) {
@@ -59,8 +85,13 @@ public class Class {
         return getFilter();
     }
 
-    public int getIcon() {
-        return getFilter() == null ? 0 : getFilter() ? R.drawable.ic_filter_off_small : R.drawable.ic_filter_on_small;
+    public boolean isHome() {
+        return getTypeId().equals("home");
+    }
+
+    public void trans() {
+        if (Trans.pass()) return;
+        this.typeName = Trans.s2t(typeName);
     }
 
     @Override

@@ -1,12 +1,38 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="http://schemas.android.com/apk/res-auto" tools:ignore="MissingTranslation">
+
+    <!-- App -->
+    <string name="app_keep">Keep</string>
+    <string name="app_history">History</string>
 
     <!-- Nav -->
-    <string name="nav_home">Home</string>
     <string name="nav_vod">Vod</string>
+    <string name="nav_live">Live</string>
     <string name="nav_setting">Setting</string>
 
-    <!-- Home -->
-    <string name="home_history">History</string>
-    <string name="home_recommend">Recommend</string>
+    <!-- Vod -->
+    <string name="vod_home">Home</string>
+
+    <!-- Detail -->
+    <string name="detail_flag">Flag</string>
+    <string name="detail_more">More</string>
+    <string name="detail_episode">Episode</string>
+    <string name="detail_content">Summary</string>
+    <string name="detail_search">Searching <xliff:g name="name">%s</xliff:g></string>
+
+    <!-- Cast -->
+    <string name="cast_select">Select devices</string>
+    <string name="cast_device_empty">Could\'t find a device to cast</string>
+    <string name="cast_device_offline">Device is offline</string>
+    <string name="cast_scan">Please scan QR Code to bind</string>
+
+    <!-- Control -->
+    <string name="control_speed">Speed</string>
+    <string name="control_scale">Scale</string>
+    <string name="control_track">Track</string>
+
+    <!-- Dialog -->
+    <string name="dialog_delete_record">Delete all records?</string>
+    <string name="dialog_delete_keep">All keep records will be removed.</string>
+    <string name="dialog_delete_history">All history records will be removed.</string>
 
 </resources>

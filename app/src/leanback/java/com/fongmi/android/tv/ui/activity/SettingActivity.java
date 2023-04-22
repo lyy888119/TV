@@ -3,43 +3,45 @@ package com.fongmi.android.tv.ui.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
-import android.provider.Settings;
-import android.view.View;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.RequiresApi;
-import androidx.core.content.ContextCompat;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.ApiConfig;
+import com.fongmi.android.tv.api.LiveConfig;
+import com.fongmi.android.tv.api.WallConfig;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.ActivitySettingBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.ConfigCallback;
+import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.net.Callback;
+import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.custom.dialog.HistoryDialog;
+import com.fongmi.android.tv.ui.custom.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.custom.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.Prefers;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.utils.Updater;
+import com.fongmi.android.tv.utils.Utils;
+import com.permissionx.guolindev.PermissionX;
 
-public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback {
-
-    private final ActivityResultLauncher<String> launcherString = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> loadConfig());
-    private final ActivityResultLauncher<Intent> launcherIntent = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> loadConfig());
+public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback {
 
     private ActivitySettingBinding mBinding;
+    private String[] quality;
+    private String[] render;
+    private String[] decode;
+    private String[] player;
+    private String[] scale;
+    private String[] size;
+    private int type;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingActivity.class));
@@ -52,111 +54,167 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initView() {
-        mBinding.url.setText(Prefers.getUrl());
-        mBinding.home.setText(ApiConfig.getHomeName());
-        mBinding.sizeText.setText(ResUtil.getStringArray(R.array.select_size)[Prefers.getSize()]);
-        mBinding.scaleText.setText(ResUtil.getStringArray(R.array.select_scale)[Prefers.getScale()]);
-        mBinding.renderText.setText(ResUtil.getStringArray(R.array.select_render)[Prefers.getRender()]);
-        mBinding.qualityText.setText(ResUtil.getStringArray(R.array.select_quality)[Prefers.getQuality()]);
+        mBinding.vodUrl.setText(ApiConfig.getDesc());
+        mBinding.liveUrl.setText(LiveConfig.getDesc());
+        mBinding.wallUrl.setText(WallConfig.getDesc());
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
+        mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[Prefers.getSize()]);
+        mBinding.scaleText.setText((scale = ResUtil.getStringArray(R.array.select_scale))[Prefers.getScale()]);
+        mBinding.playerText.setText((player = ResUtil.getStringArray(R.array.select_player))[Prefers.getPlayer()]);
+        mBinding.decodeText.setText((decode = ResUtil.getStringArray(R.array.select_decode))[Prefers.getDecode()]);
+        mBinding.renderText.setText((render = ResUtil.getStringArray(R.array.select_render))[Prefers.getRender()]);
+        mBinding.qualityText.setText((quality = ResUtil.getStringArray(R.array.select_quality))[Prefers.getQuality()]);
     }
 
     @Override
     protected void initEvent() {
-        mBinding.site.setOnClickListener(view -> SiteDialog.show(this));
-        mBinding.config.setOnClickListener(view -> ConfigDialog.show(this));
-        mBinding.history.setOnClickListener(view -> HistoryDialog.show(this));
-        mBinding.version.setOnClickListener(view -> Updater.create(this).force().start());
-        mBinding.quality.setOnClickListener(this::setQuality);
-        mBinding.render.setOnClickListener(this::setRender);
-        mBinding.scale.setOnClickListener(this::setScale);
-        mBinding.size.setOnClickListener(this::setSize);
+        mBinding.vodHome.setOnClickListener(view -> SiteDialog.create(this).all().show());
+        mBinding.liveHome.setOnClickListener(view -> LiveDialog.create(this).show());
+        mBinding.vod.setOnClickListener(view -> ConfigDialog.create(this).type(type = 0).show());
+        mBinding.live.setOnClickListener(view -> ConfigDialog.create(this).type(type = 1).show());
+        mBinding.wall.setOnClickListener(view -> ConfigDialog.create(this).type(type = 2).show());
+        mBinding.vodHistory.setOnClickListener(view -> HistoryDialog.create(this).type(type = 0).show());
+        mBinding.liveHistory.setOnClickListener(view -> HistoryDialog.create(this).type(type = 1).show());
+        mBinding.wallDefault.setOnClickListener(view -> setWallDefault());
+        mBinding.wallRefresh.setOnClickListener(view -> setWallRefresh());
+        mBinding.version.setOnLongClickListener(view -> onVersion(true));
+        mBinding.version.setOnClickListener(view -> onVersion(false));
+        mBinding.quality.setOnClickListener(view -> setQuality());
+        mBinding.player.setOnClickListener(view -> setPlayer());
+        mBinding.decode.setOnClickListener(view -> setDecode());
+        mBinding.render.setOnClickListener(view -> setRender());
+        mBinding.scale.setOnClickListener(view -> setScale());
+        mBinding.size.setOnClickListener(view -> setSize());
+    }
+
+    @Override
+    public void setConfig(Config config) {
+        if (config.getUrl().startsWith("file") && !Utils.hasPermission(this)) {
+            PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> load(config));
+        } else {
+            load(config);
+        }
+    }
+
+    private void load(Config config) {
+        switch (config.getType()) {
+            case 0:
+                Notify.progress(this);
+                mBinding.vodUrl.setText(config.getDesc());
+                ApiConfig.get().clear().config(config).load(getCallback(config));
+                break;
+            case 1:
+                Notify.progress(this);
+                mBinding.liveUrl.setText(config.getDesc());
+                LiveConfig.get().clear().config(config).load(getCallback(config));
+                break;
+            case 2:
+                mBinding.wallUrl.setText(config.getDesc());
+                WallConfig.get().clear().config(config).load(getCallback(config));
+                break;
+        }
+    }
+
+    private Callback getCallback(Config config) {
+        return new Callback() {
+            @Override
+            public void success() {
+                setConfig();
+            }
+
+            @Override
+            public void error(int resId) {
+                Notify.show(resId);
+                config.delete();
+                setConfig();
+            }
+        };
+    }
+
+    private void setConfig() {
+        switch (type) {
+            case 0:
+                Notify.dismiss();
+                RefreshEvent.video();
+                RefreshEvent.history();
+                mBinding.vodUrl.setText(ApiConfig.getDesc());
+                mBinding.liveUrl.setText(LiveConfig.getDesc());
+                mBinding.wallUrl.setText(WallConfig.getDesc());
+                break;
+            case 1:
+                Notify.dismiss();
+                mBinding.liveUrl.setText(LiveConfig.getUrl());
+                break;
+            case 2:
+                mBinding.wallUrl.setText(WallConfig.getUrl());
+                break;
+        }
     }
 
     @Override
     public void setSite(Site item) {
-        mBinding.home.setText(item.getName());
         ApiConfig.get().setHome(item);
         RefreshEvent.video();
     }
 
     @Override
-    public void setConfig(String url) {
-        mBinding.url.setText(url);
-        Notify.progress(this);
-        Prefers.putUrl(url);
-        checkUrl(url);
+    public void onChanged() {
     }
 
-    private void checkUrl(String url) {
-        if (url.startsWith("file://") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
-            openSetting();
-        } else if (url.startsWith("file://") && Build.VERSION.SDK_INT < Build.VERSION_CODES.R && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            launcherString.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
-        } else {
-            loadConfig();
-        }
+    @Override
+    public void setLive(Live item) {
+        LiveConfig.get().setHome(item);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.R)
-    private void openSetting() {
-        try {
-            launcherIntent.launch(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + BuildConfig.APPLICATION_ID)));
-        } catch (Exception e) {
-            launcherIntent.launch(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
-        }
+    private boolean onVersion(boolean dev) {
+        if (dev) Updater.get().force().dev().start();
+        else Updater.get().force().start();
+        return true;
     }
 
-    private void loadConfig() {
-        ApiConfig.get().clear().loadConfig(new Callback() {
-            @Override
-            public void success(String json) {
-                Config.save(json);
-                setSite(0);
-            }
-
-            @Override
-            public void error(int resId) {
-                setSite(resId);
-            }
-        });
-    }
-
-    private void setSite(int resId) {
-        mBinding.home.setText(ApiConfig.getHomeName());
-        RefreshEvent.history();
-        RefreshEvent.video();
-        Notify.show(resId);
-        Notify.dismiss();
-    }
-
-    private void setQuality(View view) {
-        CharSequence[] array = ResUtil.getStringArray(R.array.select_quality);
+    private void setQuality() {
         int index = Prefers.getQuality();
-        Prefers.putQuality(index = index == array.length - 1 ? 0 : ++index);
-        mBinding.qualityText.setText(array[index]);
+        Prefers.putQuality(index = index == quality.length - 1 ? 0 : ++index);
+        mBinding.qualityText.setText(quality[index]);
         RefreshEvent.image();
     }
 
-    private void setRender(View view) {
-        CharSequence[] array = ResUtil.getStringArray(R.array.select_render);
+    private void setPlayer() {
+        int index = Prefers.getPlayer();
+        Prefers.putPlayer(index = index == player.length - 1 ? 0 : ++index);
+        mBinding.playerText.setText(player[index]);
+    }
+
+    private void setDecode() {
+        int index = Prefers.getDecode();
+        Prefers.putDecode(index = index == decode.length - 1 ? 0 : ++index);
+        mBinding.decodeText.setText(decode[index]);
+    }
+
+    private void setRender() {
         int index = Prefers.getRender();
-        Prefers.putRender(index = index == array.length - 1 ? 0 : ++index);
-        mBinding.renderText.setText(array[index]);
+        Prefers.putRender(index = index == render.length - 1 ? 0 : ++index);
+        mBinding.renderText.setText(render[index]);
     }
 
-    private void setScale(View view) {
-        CharSequence[] array = ResUtil.getStringArray(R.array.select_scale);
+    private void setScale() {
         int index = Prefers.getScale();
-        Prefers.putScale(index = index == array.length - 1 ? 0 : ++index);
-        mBinding.scaleText.setText(array[index]);
+        Prefers.putScale(index = index == scale.length - 1 ? 0 : ++index);
+        mBinding.scaleText.setText(scale[index]);
     }
 
-    private void setSize(View view) {
-        CharSequence[] array = ResUtil.getStringArray(R.array.select_size);
+    private void setSize() {
         int index = Prefers.getSize();
-        Prefers.putSize(index = index == array.length - 1 ? 0 : ++index);
-        mBinding.sizeText.setText(array[index]);
+        Prefers.putSize(index = index == size.length - 2 ? 0 : ++index);
+        mBinding.sizeText.setText(size[index]);
         RefreshEvent.size();
+    }
+
+    private void setWallDefault() {
+        WallConfig.refresh(Prefers.getWall() == 4 ? 1 : Prefers.getWall() + 1);
+    }
+
+    private void setWallRefresh() {
+        WallConfig.get().load();
     }
 }

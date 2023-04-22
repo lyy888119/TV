@@ -1,48 +1,41 @@
 package com.fongmi.android.tv.event;
 
-import android.text.TextUtils;
-
-import com.fongmi.android.tv.utils.ResUtil;
+import androidx.media3.common.Player;
 
 import org.greenrobot.eventbus.EventBus;
 
 public class PlayerEvent {
 
     private final int state;
-    private boolean retry;
-    private String msg;
+    private final String url;
 
-    public static void error(int resId) {
-        EventBus.getDefault().post(new PlayerEvent(ResUtil.getString(resId), false));
-    }
-
-    public static void error(int resId, boolean retry) {
-        EventBus.getDefault().post(new PlayerEvent(ResUtil.getString(resId), retry));
+    public static void ready() {
+        EventBus.getDefault().post(new PlayerEvent(Player.STATE_READY));
     }
 
     public static void state(int state) {
         EventBus.getDefault().post(new PlayerEvent(state));
     }
 
+    public static void url(String url) {
+        EventBus.getDefault().post(new PlayerEvent(url));
+    }
+
     private PlayerEvent(int state) {
         this.state = state;
+        this.url = "";
     }
 
-    private PlayerEvent(String msg, boolean retry) {
-        this.msg = msg;
-        this.retry = retry;
-        this.state = -1;
-    }
-
-    public String getMsg() {
-        return TextUtils.isEmpty(msg) ? "" : msg;
+    public PlayerEvent(String url) {
+        this.state = 0;
+        this.url = url;
     }
 
     public int getState() {
         return state;
     }
 
-    public boolean isRetry() {
-        return retry;
+    public String getUrl() {
+        return url;
     }
 }

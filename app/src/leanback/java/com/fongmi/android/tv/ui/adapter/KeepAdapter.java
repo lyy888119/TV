@@ -7,12 +7,10 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.databinding.AdapterVodBinding;
-import com.fongmi.android.tv.utils.Prefers;
+import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
@@ -32,9 +30,9 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
     }
 
     private void setLayoutSize() {
-        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Prefers.getColumn() - 1));
-        int base = ResUtil.getScreenWidthPx() - space;
-        width = base / Prefers.getColumn();
+        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
+        int base = ResUtil.getScreenWidth() - space;
+        width = base / Product.getColumn();
         height = (int) (width / 0.75f);
     }
 
@@ -45,16 +43,6 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
         void onItemDelete(Keep item);
 
         boolean onLongClick();
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-
-        private final AdapterVodBinding binding;
-
-        public ViewHolder(@NonNull AdapterVodBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-        }
     }
 
     public void addAll(List<Keep> items) {
@@ -102,7 +90,7 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
         holder.binding.site.setVisibility(View.VISIBLE);
         holder.binding.site.setText(item.getSiteName());
         holder.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
-        Glide.with(App.get()).load(item.getVodPic()).error(R.drawable.ic_img_error).placeholder(R.drawable.ic_img_loading).into(holder.binding.image);
+        ImgUtil.loadKeep(item.getVodPic(), holder.binding.image);
     }
 
     private void setClickListener(View root, Keep item) {
@@ -111,5 +99,15 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
             if (isDelete()) mListener.onItemDelete(item);
             else mListener.onItemClick(item);
         });
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+
+        private final AdapterVodBinding binding;
+
+        public ViewHolder(@NonNull AdapterVodBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
     }
 }

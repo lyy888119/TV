@@ -6,7 +6,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Class;
+import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.databinding.AdapterTypeBinding;
 import com.fongmi.android.tv.utils.ResUtil;
 
@@ -15,44 +17,36 @@ import java.util.List;
 
 public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
 
-    private OnClickListener mListener;
+    private final OnClickListener mListener;
     private final List<Class> mItems;
 
-    public TypeAdapter() {
-        this.mItems = new ArrayList<>();
-    }
-
-    public void setListener(OnClickListener listener) {
+    public TypeAdapter(OnClickListener listener) {
         this.mListener = listener;
+        this.mItems = new ArrayList<>();
     }
 
     public interface OnClickListener {
 
-        void onItemClick(Class item);
+        void onItemClick(int position, Class item);
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-
-        private final AdapterTypeBinding binding;
-
-        ViewHolder(@NonNull AdapterTypeBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-        }
+    private Class home() {
+        Class type = new Class();
+        type.setTypeName(ResUtil.getString(R.string.vod_home));
+        type.setTypeId("home");
+        return type;
     }
 
-    public void addAll(List<Class> items) {
-        if (items.isEmpty()) return;
+    public void clear() {
         mItems.clear();
-        mItems.addAll(items);
-        mItems.get(0).setActivated(true);
         notifyDataSetChanged();
     }
 
-    public int setActivated(Class item) {
-        int position = mItems.indexOf(item);
-        setActivated(position);
-        return position;
+    public void addAll(Result result) {
+        mItems.addAll(result.getTypes());
+        if (result.getList().size() > 0) mItems.add(0, home());
+        if (mItems.size() > 0) mItems.get(0).setActivated(true);
+        notifyDataSetChanged();
     }
 
     public void setActivated(int position) {
@@ -85,8 +79,16 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
         Class item = mItems.get(position);
         holder.binding.text.setText(item.getTypeName());
         holder.binding.text.setActivated(item.isActivated());
-        holder.binding.text.setCompoundDrawablePadding(ResUtil.dp2px(4));
-        holder.binding.text.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, item.getIcon(), 0);
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.binding.text.setOnClickListener(v -> mListener.onItemClick(position, item));
+    }
+
+    static class ViewHolder extends RecyclerView.ViewHolder {
+
+        private final AdapterTypeBinding binding;
+
+        ViewHolder(@NonNull AdapterTypeBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
     }
 }

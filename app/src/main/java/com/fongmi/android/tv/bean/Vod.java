@@ -5,8 +5,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Trans;
 import com.fongmi.android.tv.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -23,6 +22,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 @Root(strict = false)
 public class Vod {
@@ -89,43 +89,43 @@ public class Vod {
     }
 
     public String getVodId() {
-        return TextUtils.isEmpty(vodId) ? "" : vodId;
+        return TextUtils.isEmpty(vodId) ? "" : vodId.trim();
     }
 
     public String getVodName() {
-        return TextUtils.isEmpty(vodName) ? "" : vodName;
+        return TextUtils.isEmpty(vodName) ? "" : vodName.trim();
     }
 
     public String getTypeName() {
-        return TextUtils.isEmpty(typeName) ? "" : typeName;
+        return TextUtils.isEmpty(typeName) ? "" : typeName.trim();
     }
 
     public String getVodPic() {
-        return TextUtils.isEmpty(vodPic) ? "" : vodPic;
+        return TextUtils.isEmpty(vodPic) ? "" : vodPic.trim();
     }
 
     public String getVodRemarks() {
-        return TextUtils.isEmpty(vodRemarks) ? "" : vodRemarks;
+        return TextUtils.isEmpty(vodRemarks) ? "" : vodRemarks.trim();
     }
 
     public String getVodYear() {
-        return TextUtils.isEmpty(vodYear) ? "" : vodYear;
+        return TextUtils.isEmpty(vodYear) ? "" : vodYear.trim();
     }
 
     public String getVodArea() {
-        return TextUtils.isEmpty(vodArea) ? "" : vodArea;
+        return TextUtils.isEmpty(vodArea) ? "" : vodArea.trim();
     }
 
     public String getVodDirector() {
-        return TextUtils.isEmpty(vodDirector) ? "" : vodDirector;
+        return TextUtils.isEmpty(vodDirector) ? "" : vodDirector.trim();
     }
 
     public String getVodActor() {
-        return TextUtils.isEmpty(vodActor) ? "" : vodActor;
+        return TextUtils.isEmpty(vodActor) ? "" : vodActor.trim();
     }
 
     public String getVodContent() {
-        return TextUtils.isEmpty(vodContent) ? "" : vodContent.replaceAll("\\s+", "");
+        return TextUtils.isEmpty(vodContent) ? "" : vodContent.trim().replace("\n", "<br>");
     }
 
     public String getVodPlayFrom() {
@@ -156,6 +156,10 @@ public class Vod {
         return getSite() == null ? "" : getSite().getName();
     }
 
+    public String getSiteKey() {
+        return getSite() == null ? "" : getSite().getKey();
+    }
+
     public int getSiteVisible() {
         return getSite() == null ? View.GONE : View.VISIBLE;
     }
@@ -168,8 +172,19 @@ public class Vod {
         return getVodRemarks().isEmpty() ? View.GONE : View.VISIBLE;
     }
 
-    public boolean shouldSearch() {
-        return getVodId().isEmpty() || getVodId().startsWith("msearch:");
+    public boolean isFolder() {
+        return getVodTag().equals("folder");
+    }
+
+    public void trans() {
+        if (Trans.pass()) return;
+        this.vodName = Trans.s2t(vodName);
+        this.vodArea = Trans.s2t(vodArea);
+        this.typeName = Trans.s2t(typeName);
+        this.vodActor = Trans.s2t(vodActor);
+        this.vodRemarks = Trans.s2t(vodRemarks);
+        this.vodContent = Trans.s2t(vodContent);
+        this.vodDirector = Trans.s2t(vodDirector);
     }
 
     public void setVodFlags() {
@@ -177,7 +192,7 @@ public class Vod {
         String[] playUrls = getVodPlayUrl().split("\\$\\$\\$");
         for (int i = 0; i < playFlags.length; i++) {
             if (playFlags[i].isEmpty() || i >= playUrls.length) continue;
-            Vod.Flag item = new Vod.Flag(playFlags[i]);
+            Vod.Flag item = new Vod.Flag(playFlags[i].trim());
             item.createEpisode(playUrls[i]);
             getVodFlags().add(item);
         }
@@ -226,16 +241,17 @@ public class Vod {
             return activated;
         }
 
-        public void setActivated(boolean activated) {
-            this.activated = activated;
+        public void setActivated(Flag item) {
+            this.activated = item.equals(this);
+            if (activated) item.episodes = episodes;
         }
 
         public void createEpisode(String data) {
             String[] urls = data.contains("#") ? data.split("#") : new String[]{data};
-            String play = ResUtil.getString(R.string.play);
-            for (String url : urls) {
-                String[] split = url.split("\\$");
-                Episode episode = split.length >= 2 ? new Vod.Flag.Episode(split[0].isEmpty() ? play : split[0], split[1]) : new Vod.Flag.Episode(play, url);
+            for (int i = 0; i < urls.length; i++) {
+                String[] split = urls[i].split("\\$");
+                String number = String.format(Locale.getDefault(), "%02d", i + 1);
+                Episode episode = split.length > 1 ? new Vod.Flag.Episode(split[0].isEmpty() ? number : split[0].trim(), split[1]) : new Vod.Flag.Episode(number, urls[i]);
                 if (!getEpisodes().contains(episode)) getEpisodes().add(episode);
             }
         }
@@ -280,10 +296,20 @@ public class Vod {
 
             private boolean activated;
 
+            public static Episode objectFrom(String str) {
+                return new Gson().fromJson(str, Episode.class);
+            }
+
+            public static List<Episode> arrayFrom(String str) {
+                Type listType = new TypeToken<List<Episode>>() {}.getType();
+                List<Episode> items = new Gson().fromJson(str, listType);
+                return items == null ? Collections.emptyList() : items;
+            }
+
             public Episode(String name, String url) {
-                this.name = name;
-                this.url = url;
                 this.number = Utils.getDigit(name);
+                this.name = Trans.s2t(name);
+                this.url = url;
             }
 
             public String getName() {

@@ -5,6 +5,7 @@ import android.net.wifi.WifiManager;
 import android.text.format.Formatter;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.ServerEvent;
 
 import java.net.Inet4Address;
@@ -30,13 +31,16 @@ public class Server implements Nano.Listener {
         this.port = 9978;
     }
 
-    public String getAddress(boolean local) {
-        return "http://" + (local ? "127.0.0.1" : getIP()) + ":" + port;
+    public String getAddress() {
+        return getAddress(false);
     }
 
-    public static String proxy(String url) {
-        if (url.startsWith("proxy://")) return url.replace("proxy://", get().getAddress(true) + "/proxy?");
-        return url;
+    public String getAddress(String path) {
+        return getAddress(true) + "/" + path;
+    }
+
+    public String getAddress(boolean local) {
+        return "http://" + (local ? "127.0.0.1" : getIP()) + ":" + port;
     }
 
     public void start() {
@@ -87,8 +91,8 @@ public class Server implements Nano.Listener {
     }
 
     @Override
-    public void onSearch(String text) {
-        if (text.length() > 0) ServerEvent.search(text);
+    public void onSearch(String word) {
+        if (word.length() > 0) ServerEvent.search(word);
     }
 
     @Override
@@ -99,5 +103,10 @@ public class Server implements Nano.Listener {
     @Override
     public void onApi(String url) {
         if (url.length() > 0) ServerEvent.api(url);
+    }
+
+    @Override
+    public void onCast(String device, String config, String history) {
+        CastEvent.post(device, config, history);
     }
 }
